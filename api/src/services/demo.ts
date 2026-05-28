@@ -76,6 +76,30 @@ export const demoUsers: DemoUser[] = [
     mail: "maya@example.com",
     displayName: "Maya Patel",
     avatarUrl: ""
+  },
+  {
+    id: "user-test-admin",
+    username: "test-admin",
+    cn: "Test Admin",
+    mail: "test-admin@demo.local",
+    displayName: "Test Admin",
+    avatarUrl: ""
+  },
+  {
+    id: "user-test-engineer",
+    username: "test-engineer",
+    cn: "Test Engineer",
+    mail: "test-engineer@demo.local",
+    displayName: "Test Engineer",
+    avatarUrl: ""
+  },
+  {
+    id: "user-test-readonly",
+    username: "test-readonly",
+    cn: "Test Read-Only",
+    mail: "test-readonly@demo.local",
+    displayName: "Test Read-Only",
+    avatarUrl: ""
   }
 ];
 
@@ -260,7 +284,13 @@ export const demoMembers: DemoMember[] = [
   { userId: "user-jamie", projectId: "project-phoenix", role: "engineer" },
   { userId: "user-maya", projectId: "project-phoenix", role: "read-only" },
   { userId: "user-alex", projectId: "project-orbit", role: "engineer" },
-  { userId: "user-maya", projectId: "project-orbit", role: "admin" }
+  { userId: "user-maya", projectId: "project-orbit", role: "admin" },
+  { userId: "user-test-admin", projectId: "project-phoenix", role: "admin" },
+  { userId: "user-test-admin", projectId: "project-orbit", role: "admin" },
+  { userId: "user-test-engineer", projectId: "project-phoenix", role: "engineer" },
+  { userId: "user-test-engineer", projectId: "project-orbit", role: "engineer" },
+  { userId: "user-test-readonly", projectId: "project-phoenix", role: "read-only" },
+  { userId: "user-test-readonly", projectId: "project-orbit", role: "read-only" }
 ];
 
 export function getDemoUser(userId: string): DemoUser | undefined {
