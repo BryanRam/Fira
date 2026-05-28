@@ -1,5 +1,6 @@
 import { json, readJson } from "../http";
 import { demoTasks, getDemoTask } from "../services/demo";
+import { runQuery } from "../services/neo4j";
 import { canCreateTask, canEditTask, canMoveTask, type ProjectRole } from "../services/permissions";
 import { getTaskById, getTaskTree } from "../services/tasks";
 import { dispatchTransitionCommand, validateTransition } from "../services/transitions";
@@ -84,19 +85,33 @@ export async function updateTaskStatusRoute(taskId: string, request: Request, ro
     return json({ message: "Forbidden." }, 403);
   }
 
-  const task = getDemoTask(taskId);
-  if (!task) {
+  const payload = await readJson<{ status: "todo" | "in-progress" | "in-review" | "done" }>(request);
+
+  const currentTask = await getTaskById(taskId);
+  if (!currentTask) {
     return json({ message: "Task not found." }, 404);
   }
 
-  const payload = await readJson<{ status: "todo" | "in-progress" | "in-review" | "done" }>(request);
-  if (!payload.status || !validateTransition(task.status, payload.status, role)) {
+  if (!payload.status || !validateTransition(currentTask.status, payload.status, role)) {
     return json({ message: "Invalid status transition." }, 400);
   }
 
-  const previousStatus = task.status;
-  task.status = payload.status;
-  return json({ task, command: dispatchTransitionCommand(taskId, previousStatus, payload.status) });
+  const previousStatus = currentTask.status;
+
+  try {
+    await runQuery(
+      "MATCH (task:Task {id: $taskId}) SET task.status = $status",
+      { taskId, status: payload.status }
+    );
+    const updated = await getTaskById(taskId);
+    return json({ task: updated, command: dispatchTransitionCommand(taskId, previousStatus, payload.status) });
+  } catch {
+    const task = getDemoTask(taskId);
+    if (task) {
+      task.status = payload.status;
+    }
+    return json({ task: { ...currentTask, status: payload.status }, command: dispatchTransitionCommand(taskId, previousStatus, payload.status) });
+  }
 }
 
 export async function deleteTaskRoute(taskId: string): Promise<Response> {
