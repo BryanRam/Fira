@@ -3,24 +3,53 @@
     <AppSidebar :current-project-id="projectId" />
     <main class="page">
       <header class="project-header">
-        <div><p class="eyebrow">{{ project?.teamName }}</p><h1>{{ project?.name }}</h1></div>
-        <div class="header-actions">
-          <input v-model="globalSearch" type="search" placeholder="Search project" />
-          <button type="button" class="icon-button">🔔</button>
-          <UserAvatar :name="auth.user?.displayName ?? 'Alex Morgan'" :src="auth.user?.avatarUrl" :size="38" />
+        <div class="header-left">
+          <span class="project-badge">{{ projectKey }}</span>
+          <h1>{{ project?.name ?? 'Project' }}</h1>
+          <nav class="tab-bar">
+            <RouterLink :to="`/projects/${projectId}/kanban`" class="tab" active-class="tab-active">Kanban</RouterLink>
+            <RouterLink :to="`/projects/${projectId}/timeline`" class="tab" active-class="tab-active">Timeline</RouterLink>
+            <RouterLink :to="`/projects/${projectId}/settings`" class="tab" active-class="tab-active">List</RouterLink>
+          </nav>
+        </div>
+        <div class="header-right">
+          <div class="search-wrap">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="4.5" stroke="#94a3b8" stroke-width="1.5"/><path d="M11 11l3 3" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <input v-model="globalSearch" type="search" placeholder="Search" class="header-search" />
+          </div>
+          <button class="icon-btn" title="Notifications">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2a5 5 0 0 0-5 5v3l-1.5 2.5h13L14 10V7a5 5 0 0 0-5-5z" stroke="#475569" stroke-width="1.5" stroke-linejoin="round"/><path d="M7 14.5a2 2 0 0 0 4 0" stroke="#475569" stroke-width="1.5"/></svg>
+          </button>
+          <button class="icon-btn" title="Help">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="#475569" stroke-width="1.5"/><path d="M6.5 7a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 3.5" stroke="#475569" stroke-width="1.5" stroke-linecap="round"/><circle cx="9" cy="13.5" r="0.75" fill="#475569"/></svg>
+          </button>
+          <UserAvatar :name="auth.user?.displayName ?? 'Alex Morgan'" :src="auth.user?.avatarUrl" :size="36" />
         </div>
       </header>
-      <div class="tabs">
-        <RouterLink :to="`/projects/${projectId}/kanban`" class="tab active">Kanban</RouterLink>
-        <RouterLink :to="`/projects/${projectId}/timeline`" class="tab">Timeline</RouterLink>
-        <RouterLink :to="`/projects/${projectId}/settings`" class="tab">List</RouterLink>
-      </div>
+
       <section class="toolbar">
-        <input v-model="search" type="search" placeholder="Search tasks" />
-        <select v-model="assigneeFilter"><option value="">Assignee</option><option v-for="member in members" :key="member.userId" :value="member.userId">{{ member.user.displayName }}</option></select>
-        <select v-model="labelFilter"><option value="">Label</option><option v-for="label in labels" :key="label" :value="label">{{ label }}</option></select>
-        <button type="button" class="create-button" @click="createIssue">+ Create Issue</button>
+        <div class="toolbar-left">
+          <div class="search-wrap">
+            <svg class="search-icon" width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="4.5" stroke="#94a3b8" stroke-width="1.5"/><path d="M11 11l3 3" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <input v-model="search" type="search" placeholder="Search tasks..." class="toolbar-search" />
+          </div>
+          <button class="filter-btn">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="5" cy="5" r="2" stroke="#475569" stroke-width="1.3"/><circle cx="9" cy="9" r="2" stroke="#475569" stroke-width="1.3"/></svg>
+            Assignee
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 4.5l3 3 3-3" stroke="#475569" stroke-width="1.3" stroke-linecap="round"/></svg>
+          </button>
+          <button class="filter-btn">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="4" width="10" height="1.5" rx="0.75" fill="#475569"/><rect x="4" y="7" width="6" height="1.5" rx="0.75" fill="#475569"/><rect x="6" y="10" width="2" height="1.5" rx="0.75" fill="#475569"/></svg>
+            Label
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 4.5l3 3 3-3" stroke="#475569" stroke-width="1.3" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <button type="button" class="create-button" @click="createIssue">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+          Create Issue
+        </button>
       </section>
+
       <KanbanBoard :tasks="filteredTasks" :statuses="statusOrder" @move-task="handleMoveTask" @select-task="selectTask" />
     </main>
     <TaskDetail :task="tasksStore.selectedTask" @close="tasksStore.selectedTask = null" />
@@ -46,44 +75,55 @@ const projectsStore = useProjectsStore();
 const tasksStore = useTasksStore();
 const search = ref('');
 const globalSearch = ref('');
-const assigneeFilter = ref('');
-const labelFilter = ref('');
 const members = ref<ProjectMember[]>([]);
 onMounted(async () => {
   await Promise.all([projectsStore.fetchProject(projectId), tasksStore.fetchProjectTasks(projectId)]);
   members.value = await getProjectMembers(projectId, auth.accessToken);
 });
 const project = computed(() => projectsStore.currentProject);
+const projectKey = computed(() => project.value?.key ?? projectId.slice(0, 2).toUpperCase());
 const flatTasks = computed(() => tasksStore.getFlatTasks(projectId));
-const labels = computed(() => [...new Set(flatTasks.value.map((task) => task.label))]);
 const filteredTasks = computed(() => {
   const query = `${search.value} ${globalSearch.value}`.trim().toLowerCase();
   return flatTasks.value.filter((task) => {
-    const matchesSearch = !query || `${task.issueId} ${task.title} ${task.description}`.toLowerCase().includes(query);
-    const matchesAssignee = !assigneeFilter.value || task.assigneeId === assigneeFilter.value;
-    const matchesLabel = !labelFilter.value || task.label === labelFilter.value;
-    return matchesSearch && matchesAssignee && matchesLabel;
+    return !query || `${task.issueId} ${task.title}`.toLowerCase().includes(query);
   });
 });
 function selectTask(task: TaskItem): void { tasksStore.selectedTask = task; }
 async function handleMoveTask(payload: { taskId: string; status: TaskStatus }): Promise<void> { await tasksStore.moveTask(payload.taskId, payload.status, projectId); }
-async function createIssue(): Promise<void> { await tasksStore.createTask(projectId, { title: 'New dashboard polish task', description: 'Created directly from the Kanban board demo.', label: 'Design', priority: 'medium', status: 'todo' }); }
+async function createIssue(): Promise<void> { await tasksStore.createTask(projectId, { title: 'New task', description: '', label: 'Design', priority: 'medium', status: 'todo' }); }
 </script>
 
 <style scoped>
-.layout { display: flex; min-height: 100vh; background: #f8f9fa; }
-.page { flex: 1; padding: 1.75rem; overflow: auto; }
-.project-header, .toolbar, .header-actions, .tabs { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-.eyebrow { margin: 0; color: #64748b; text-transform: uppercase; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.08em; }
-h1 { margin: 0.35rem 0 0; }
-.tabs { justify-content: flex-start; margin: 1.4rem 0; }
-.tab { padding: 0.7rem 1rem; border-radius: 999px; color: #475569; text-decoration: none; font-weight: 700; }
-.tab.active, .tab.router-link-active { background: #dbeafe; color: #1e40af; }
-.toolbar { margin-bottom: 1.25rem; }
-input, select { padding: 0.82rem 1rem; border: 1px solid #cbd5e1; border-radius: 0.95rem; background: #ffffff; font: inherit; }
-.header-actions input { min-width: 220px; }
-.icon-button, .create-button { border: none; border-radius: 0.95rem; cursor: pointer; }
-.icon-button { width: 42px; height: 42px; background: #ffffff; }
-.create-button { padding: 0.82rem 1rem; background: #1e40af; color: #ffffff; font-weight: 700; }
+.layout { display: flex; min-height: 100vh; background: #f1f5f9; }
+.page { flex: 1; padding: 1.5rem 1.75rem; overflow: auto; min-width: 0; }
+
+/* Header */
+.project-header { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding-bottom: 0; }
+.header-left { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.project-badge { padding: 0.3rem 0.6rem; border-radius: 6px; background: #1e40af; color: #ffffff; font-size: 0.76rem; font-weight: 800; letter-spacing: 0.05em; flex-shrink: 0; }
+h1 { margin: 0; font-size: 1.15rem; font-weight: 700; }
+.tab-bar { display: flex; gap: 0.15rem; background: transparent; }
+.tab { padding: 0.55rem 1rem; border-radius: 6px; color: #64748b; text-decoration: none; font-weight: 600; font-size: 0.9rem; }
+.tab:hover { background: #e2e8f0; color: #1e293b; }
+.tab-active { color: #1e40af; background: transparent; border-bottom: 2px solid #1e40af; border-radius: 0; }
+.header-right { display: flex; align-items: center; gap: 0.75rem; }
+.search-wrap { position: relative; display: flex; align-items: center; }
+.search-icon { position: absolute; left: 10px; pointer-events: none; }
+.header-search { padding: 0.6rem 1rem 0.6rem 2.25rem; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff; font: inherit; font-size: 0.88rem; width: 240px; outline: none; }
+.header-search:focus { border-color: #93c5fd; }
+.icon-btn { width: 36px; height: 36px; border: none; border-radius: 50%; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.icon-btn:hover { background: #e2e8f0; }
+
+/* Toolbar */
+.toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: 1.25rem 0 1.25rem; }
+.toolbar-left { display: flex; gap: 0.65rem; align-items: center; }
+.toolbar-search { padding: 0.65rem 1rem 0.65rem 2.25rem; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff; font: inherit; font-size: 0.88rem; width: 200px; outline: none; }
+.toolbar-search:focus { border-color: #93c5fd; }
+.filter-btn { display: flex; align-items: center; gap: 0.45rem; padding: 0.6rem 1rem; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff; color: #475569; font: inherit; font-size: 0.88rem; font-weight: 600; cursor: pointer; }
+.filter-btn:hover { background: #f8fafc; }
+.create-button { display: flex; align-items: center; gap: 0.45rem; padding: 0.65rem 1.1rem; border: none; border-radius: 8px; background: #1e40af; color: #ffffff; font: inherit; font-weight: 700; font-size: 0.88rem; cursor: pointer; white-space: nowrap; }
+.create-button:hover { background: #1d3a9e; }
+
 @media (max-width: 1200px) { .layout { flex-direction: column; } .project-header, .toolbar { flex-direction: column; align-items: stretch; } }
 </style>

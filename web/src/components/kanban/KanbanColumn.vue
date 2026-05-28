@@ -3,10 +3,12 @@
     <header class="column-header">
       <div class="header-left">
         <span class="dot" :style="{ background: dotColor }"></span>
-        <h3>{{ title }}</h3>
+        <h3>{{ title.toUpperCase() }}</h3>
         <span class="count">{{ tasks.length }}</span>
       </div>
-      <button type="button">⋯</button>
+      <button type="button" class="menu-btn" title="Column options">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="3" r="1.25" fill="#94a3b8"/><circle cx="8" cy="8" r="1.25" fill="#94a3b8"/><circle cx="8" cy="13" r="1.25" fill="#94a3b8"/></svg>
+      </button>
     </header>
     <div class="cards">
       <TaskCard v-for="task in tasks" :key="task.id" :task="task" @dragstart="handleDragStart" @select="emit('select-task', $event)" />
@@ -30,12 +32,13 @@ function handleDragStart(taskId: string, dragEvent: DragEvent): void {
 </script>
 
 <style scoped>
-.column { min-width: 280px; padding: 1rem; border-radius: 1.2rem; background: #f8fafc; border: 1px solid #e2e8f0; }
-.column-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.column { min-width: 270px; padding: 0.9rem; border-radius: 10px; background: #f8fafc; border: 1px solid #e9eef4; }
+.column-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.9rem; }
 .header-left { display: flex; align-items: center; gap: 0.55rem; }
-.dot { width: 10px; height: 10px; border-radius: 999px; }
-h3 { margin: 0; font-size: 0.95rem; }
-.count { color: #64748b; font-size: 0.82rem; }
-button { border: none; background: transparent; color: #64748b; cursor: pointer; }
-.cards { display: grid; gap: 0.9rem; }
+.dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+h3 { margin: 0; font-size: 0.78rem; font-weight: 800; color: #475569; letter-spacing: 0.06em; }
+.count { color: #94a3b8; font-size: 0.78rem; font-weight: 700; }
+.menu-btn { border: none; background: transparent; cursor: pointer; padding: 0.25rem; display: flex; align-items: center; border-radius: 4px; }
+.menu-btn:hover { background: #e2e8f0; }
+.cards { display: grid; gap: 0.75rem; }
 </style>
