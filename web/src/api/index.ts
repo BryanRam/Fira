@@ -335,6 +335,34 @@ export async function setMemberRole(projectId: string, userId: string, role: Pro
   return request<ProjectMember[]>(`/projects/${projectId}/members/${userId}`, { method: 'PUT', token, body: JSON.stringify({ role }) });
 }
 
+export async function addProjectMember(projectId: string, userId: string, role: ProjectRole, token?: string): Promise<ProjectMember[]> {
+  if (useMockData) {
+    if (!mockMembers[projectId]) mockMembers[projectId] = [];
+    const existing = mockMembers[projectId].find((entry) => entry.userId === userId);
+    if (!existing) {
+      const user = mockUsers.find((entry) => entry.id === userId);
+      if (user) mockMembers[projectId].push({ projectId, userId, role, user });
+    }
+    return clone(mockMembers[projectId]);
+  }
+  return request<ProjectMember[]>(`/projects/${projectId}/members/${userId}`, { method: 'PUT', token, body: JSON.stringify({ role }) });
+}
+
+export async function removeProjectMember(projectId: string, userId: string, token?: string): Promise<ProjectMember[]> {
+  if (useMockData) {
+    if (mockMembers[projectId]) {
+      mockMembers[projectId] = mockMembers[projectId].filter((entry) => entry.userId !== userId);
+    }
+    return clone(mockMembers[projectId] ?? []);
+  }
+  return request<ProjectMember[]>(`/projects/${projectId}/members/${userId}`, { method: 'DELETE', token });
+}
+
+export async function listUsers(token?: string): Promise<UserProfile[]> {
+  if (useMockData) return clone(mockUsers);
+  return request<UserProfile[]>('/users', { token });
+}
+
 export async function getMyTasks(token?: string): Promise<TaskItem[]> {
   if (useMockData) return clone(mockTaskSeed.filter((task) => task.assigneeId === 'user-alex').map(enrichTask));
   return request<TaskItem[]>('/me/tasks', { token });

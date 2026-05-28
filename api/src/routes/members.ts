@@ -21,3 +21,16 @@ export async function setProjectMemberRoleRoute(projectId: string, userId: strin
 
   return json(getDemoProjectMembers(projectId));
 }
+
+export async function removeProjectMemberRoute(projectId: string, userId: string, role: ProjectRole = "admin"): Promise<Response> {
+  if (!canManageMembers(role)) {
+    return json({ message: "Forbidden." }, 403);
+  }
+
+  const index = demoMembers.findIndex((entry) => entry.projectId === projectId && entry.userId === userId);
+  if (index !== -1) {
+    demoMembers.splice(index, 1);
+  }
+
+  return json(getDemoProjectMembers(projectId));
+}

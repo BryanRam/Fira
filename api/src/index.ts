@@ -2,7 +2,7 @@ import { getAuthenticatedUser } from "./auth/middleware";
 import { json, withCors, corsHeaders } from "./http";
 import { refreshRoute, loginRoute } from "./routes/auth";
 import { getMyTasksRoute } from "./routes/dashboard";
-import { listProjectMembersRoute, setProjectMemberRoleRoute } from "./routes/members";
+import { listProjectMembersRoute, removeProjectMemberRoute, setProjectMemberRoleRoute } from "./routes/members";
 import { createProjectRoute, deleteProjectRoute, getProjectRoute, listProjectsRoute, updateProjectRoute } from "./routes/projects";
 import {
   createChildTaskRoute,
@@ -13,7 +13,7 @@ import {
   updateTaskRoute,
   updateTaskStatusRoute
 } from "./routes/tasks";
-import { getUserRoute, updateUserProfileRoute } from "./routes/users";
+import { getUserRoute, listUsersRoute, updateUserProfileRoute } from "./routes/users";
 
 type RouteHandler = (request: Request, params: Record<string, string>, userId: string | null) => Promise<Response>;
 
@@ -41,6 +41,8 @@ const routes: RouteDefinition[] = [
   { method: "POST", pattern: new URLPattern({ pathname: "/tasks/:id/children" }), protected: true, handler: (request, params) => createChildTaskRoute(params.id, request) },
   { method: "GET", pattern: new URLPattern({ pathname: "/projects/:id/members" }), protected: true, handler: (_, params) => listProjectMembersRoute(params.id) },
   { method: "PUT", pattern: new URLPattern({ pathname: "/projects/:id/members/:userId" }), protected: true, handler: (request, params) => setProjectMemberRoleRoute(params.id, params.userId, request) },
+  { method: "DELETE", pattern: new URLPattern({ pathname: "/projects/:id/members/:userId" }), protected: true, handler: (_, params) => removeProjectMemberRoute(params.id, params.userId) },
+  { method: "GET", pattern: new URLPattern({ pathname: "/users" }), protected: true, handler: () => listUsersRoute() },
   { method: "GET", pattern: new URLPattern({ pathname: "/me/tasks" }), protected: true, handler: (_, __, userId) => getMyTasksRoute(userId ?? "user-alex") },
   { method: "GET", pattern: new URLPattern({ pathname: "/users/:id" }), protected: true, handler: (_, params) => getUserRoute(params.id) },
   { method: "PATCH", pattern: new URLPattern({ pathname: "/users/:id/profile" }), protected: true, handler: (request, params) => updateUserProfileRoute(params.id, request) }

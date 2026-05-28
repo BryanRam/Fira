@@ -6,6 +6,10 @@ interface ProfileBody {
   avatarUrl?: string;
 }
 
+export async function listUsersRoute(): Promise<Response> {
+  return json(demoUsers);
+}
+
 export async function getUserRoute(userId: string): Promise<Response> {
   const user = demoUsers.find((entry) => entry.id === userId || entry.username === userId);
   return user ? json(user) : json({ message: "User not found." }, 404);
