@@ -1,0 +1,41 @@
+version: '3.9'
+
+services:
+  neo4j:
+    image: neo4j:5
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD}
+    ports:
+      - '7474:7474'
+      - '7687:7687'
+    volumes:
+      - neo4j_data:/data
+
+  api:
+    build: ./api
+    environment:
+      NEO4J_URI: bolt://neo4j:7687
+      NEO4J_USER: neo4j
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD}
+      LDAP_URL: ${LDAP_URL}
+      LDAP_BIND_DN: ${LDAP_BIND_DN}
+      LDAP_BIND_PASSWORD: ${LDAP_BIND_PASSWORD}
+      LDAP_BASE_DN: ${LDAP_BASE_DN}
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - '3000:3000'
+    depends_on:
+      - neo4j
+
+  web:
+    build: ./web
+    environment:
+      VITE_API_BASE_URL: ${API_BASE_URL}
+      VITE_USE_MOCK_DATA: ${VITE_USE_MOCK_DATA:-true}
+    ports:
+      - '8080:80'
+    depends_on:
+      - api
+
+volumes:
+  neo4j_data:
