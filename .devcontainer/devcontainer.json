@@ -1,0 +1,26 @@
+{
+  "name": "Fira",
+  "build": { "dockerfile": "Dockerfile" },
+  // "node" is UID 1000 (default WSL user); the UID is also remapped to the
+  // host user on Linux/WSL so bind-mounted files are never root-owned.
+  "remoteUser": "node",
+  "updateRemoteUserUID": true,
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/node/.claude",
+    "VITE_USE_MOCK_DATA": "true"
+  },
+  "mounts": [
+    "source=fira-claude-config,target=/home/node/.claude,type=volume"
+  ],
+  "postCreateCommand": "sudo chown -R node:node /home/node/.claude && (cd api && bun install) && (cd web && npm ci)",
+  "forwardPorts": [3000, 5173],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Vue.volar",
+        "oven.bun-vscode",
+        "anthropic.claude-code"
+      ]
+    }
+  }
+}
